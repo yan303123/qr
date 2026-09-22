@@ -81,27 +81,7 @@ background: rgba(15, 23, 42, 0.85);
 
 <div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
 <label for="rawInput" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Raw QR Payload String</label>
-<textarea id="rawInput" rows="3" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Paste EMVCo QR String here..."></textarea>
-
-<!-- XML Input Metadata Adjustments -->
-<div class="grid grid-cols-2 gap-3 mt-3">
-<div>
-<label class="block text-[10px] font-semibold text-slate-400 uppercase">Debtor Name</label>
-<input type="text" id="debtorName" value="Genevieve" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
-</div>
-<div>
-<label class="block text-[10px] font-semibold text-slate-400 uppercase">Debtor Account</label>
-<input type="text" id="debtorAcct" value="012523652145" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
-</div>
-<div>
-<label class="block text-[10px] font-semibold text-slate-400 uppercase">Sender BIC (InstgAgt)</label>
-<input type="text" id="senderBic" value="TSTEMUMU" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
-</div>
-<div>
-<label class="block text-[10px] font-semibold text-slate-400 uppercase">Receiver BIC (To)</label>
-<input type="text" id="receiverBic" value="BOMMMUPLIPS" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
-</div>
-</div>
+<textarea id="rawInput" rows="5" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Paste EMVCo QR String here..."></textarea>
 
 <div class="flex gap-2 mt-4">
 <button id="parseBtn" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition shadow-md shadow-blue-500/10">Parse & Generate ISO XML</button>
@@ -354,27 +334,22 @@ const tag62 = parseEMVCo(qr['62'] || '');
 
 const amount = qr['54'] || '0.00';
 const currency = qr['53'] === '480' ? 'MUR' : (qr['53'] || 'MUR');
-const merchantName = qr['59'] || 'UNKNOWN';
-const merchantCity = qr['60'] || 'PortLouis';
-const mcc = qr['52'] || '0000';
+const merchantName = qr['59'] || '';
+const merchantCity = qr['60'] || '';
+const mcc = qr['52'] || '';
 
-const globalId = tag26['00'] || 'mu.maucas';
-const merchantId = tag26['01'] || 'UNKNOWN';
+const globalId = tag26['00'] || '';
+const merchantId = tag26['01'] || '';
 const merchantAcct = tag26['02'] || merchantId;
-const cdtrBic = tag26['08'] || 'LABRMUM0';
+const cdtrBic = tag26['08'] || '';
 
 const billNumber = tag62['01'] || '';
 const refLabel = tag62['08'] || '';
 
-const debtorName = document.getElementById('debtorName').value || 'Genevieve';
-const debtorAcct = document.getElementById('debtorAcct').value || '012523652145';
-const senderBic = document.getElementById('senderBic').value || 'TSTEMUMU';
-const receiverBic = document.getElementById('receiverBic').value || 'BOMMMUPLIPS';
-
 const now = new Date();
 const dateStr = now.toISOString().split('T')[0];
 const timeStr = now.toISOString().replace(/[:-]/g, '').split('.')[0];
-const msgId = `${senderBic}${timeStr}`;
+const msgId = `MSG${timeStr}`;
 const creationDt = now.toISOString();
 
 const ustrdRemittance = `/QR/${globalId}//01/12/62//01/${billNumber}/08/${refLabel}///RQ/`;
@@ -387,14 +362,14 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <Fr>
 <FIId>
 <FinInstnId>
-<BICFI>${escapeXml(senderBic)}</BICFI>
+<BICFI></BICFI>
 </FinInstnId>
 </FIId>
 </Fr>
 <To>
 <FIId>
 <FinInstnId>
-<BICFI>${escapeXml(receiverBic)}</BICFI>
+<BICFI></BICFI>
 </FinInstnId>
 </FIId>
 </To>
@@ -437,7 +412,7 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <ChrgBr>CRED</ChrgBr>
 <InstgAgt>
 <FinInstnId>
-<BICFI>${escapeXml(senderBic)}</BICFI>
+<BICFI></BICFI>
 </FinInstnId>
 </InstgAgt>
 <InstdAgt>
@@ -446,18 +421,18 @@ const xml = `<?xml version="1.0" encoding="UTF-8"?>
 </FinInstnId>
 </InstdAgt>
 <Dbtr>
-<Nm>${escapeXml(debtorName)}</Nm>
+<Nm></Nm>
 </Dbtr>
 <DbtrAcct>
 <Id>
 <Othr>
-<Id>${escapeXml(debtorAcct)}</Id>
+<Id></Id>
 </Othr>
 </Id>
 </DbtrAcct>
 <DbtrAgt>
 <FinInstnId>
-<BICFI>${escapeXml(senderBic)}</BICFI>
+<BICFI></BICFI>
 </FinInstnId>
 </DbtrAgt>
 <CdtrAgt>
@@ -539,12 +514,6 @@ tr.innerHTML = `
 `;
 tlvBody.appendChild(tr);
 }
-
-// Initialize default sample payload on load
-window.addEventListener('DOMContentLoaded', () => {
-rawInput.value = "00020101021226420009mu.maucas0109LABR000010808LABRMUM05204939953034805406700.005802MU5904LABR6009PortLouis62480123MAUCAS-QR17845396420950818Payment for permit6304C741";
-processAndGenerate(rawInput.value);
-});
 </script>
 </body>
 </html>
