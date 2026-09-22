@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EMVCo MauCAS QR & ISO 20022 pacs.008 Converter</title>
+<title>EMVCo MauCAS QR & ISO 20022 pacs.008 Engine</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -34,12 +34,12 @@ brand: {
 body { font-family: 'Inter', sans-serif; }
 code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
 .glass-card {
-background: rgba(255, 255, 255, 0.8);
+background: rgba(255, 255, 255, 0.85);
 backdrop-filter: blur(12px);
 -webkit-backdrop-filter: blur(12px);
 }
 .dark .glass-card {
-background: rgba(15, 23, 42, 0.8);
+background: rgba(15, 23, 42, 0.85);
 }
 </style>
 </head>
@@ -68,22 +68,22 @@ background: rgba(15, 23, 42, 0.8);
 <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
 <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-<!-- Input & Image Upload Column -->
+<!-- Left Column: Controls & Image Import -->
 <div class="lg:col-span-5 flex flex-col gap-4">
-<div id="dropZone" class="glass-card relative border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition flex flex-col items-center justify-center min-h-[160px] shadow-sm">
+<div id="dropZone" class="glass-card relative border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition flex flex-col items-center justify-center min-h-[150px] shadow-sm">
 <input type="file" id="fileInput" accept="image/*" class="hidden">
 <div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2">
 <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
 </div>
 <p class="font-semibold text-slate-700 dark:text-slate-200">Upload or Paste QR Image</p>
-<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Drag & drop image, browse, or paste clipboard (Ctrl+V)</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Click to browse, drag & drop, or press Ctrl+V</p>
 </div>
 
 <div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
 <label for="rawInput" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Raw QR Payload String</label>
 <textarea id="rawInput" rows="3" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Paste EMVCo QR String here..."></textarea>
 
-<!-- Context Customizations for XML -->
+<!-- XML Input Metadata Adjustments -->
 <div class="grid grid-cols-2 gap-3 mt-3">
 <div>
 <label class="block text-[10px] font-semibold text-slate-400 uppercase">Debtor Name</label>
@@ -110,36 +110,36 @@ background: rgba(15, 23, 42, 0.8);
 </div>
 </div>
 
-<!-- Preview Canvas & ISO 20022 XML Output Column -->
+<!-- Right Column: Canvas & XML Result Output -->
 <div class="lg:col-span-7 flex flex-col gap-4">
 <div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm relative">
-<div class="flex items-center justify-between mb-3">
-<h2 class="font-semibold text-sm">QR Preview</h2>
+<div class="flex items-center justify-between mb-2">
+<h2 class="font-semibold text-sm">QR Code Preview</h2>
 </div>
-<div class="flex items-center justify-center bg-slate-100 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-200/50 dark:border-slate-800/50 overflow-hidden min-h-[100px]">
+<div class="flex items-center justify-center bg-slate-100 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-200/50 dark:border-slate-800/50 overflow-hidden min-h-[90px]">
 <canvas id="qrCanvas" class="max-h-[120px] object-contain rounded-lg hidden"></canvas>
 <p id="canvasPlaceholder" class="text-xs text-slate-400 flex items-center gap-2">
-<i class="fa-regular fa-image text-base"></i> Upload or paste a QR image to preview
+<i class="fa-regular fa-image text-base"></i> Preview image will display here after upload/paste
 </p>
 </div>
 </div>
 
-<!-- XML Output Card -->
+<!-- XML Output Block -->
 <div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex-1 flex flex-col">
 <div class="flex items-center justify-between mb-2">
-<h2 class="font-semibold text-sm flex items-center gap-2 text-indigo-500">
-<i class="fa-solid fa-code"></i> pacs.008.001.08 Payload
+<h2 class="font-semibold text-sm flex items-center gap-2 text-indigo-500 dark:text-indigo-400">
+<i class="fa-solid fa-code"></i> Generated pacs.008.001.08 XML
 </h2>
-<button id="copyXmlBtn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1">
+<button id="copyXmlBtn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1 shadow-sm">
 <i class="fa-regular fa-copy"></i> Copy XML
 </button>
 </div>
-<textarea id="xmlOutput" rows="12" readonly class="w-full flex-1 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-900 text-emerald-400 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Generated pacs.008 XML will appear here..."></textarea>
+<textarea id="xmlOutput" rows="15" readonly class="w-full flex-1 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-900 text-emerald-400 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="ISO 20022 XML document will render here..."></textarea>
 </div>
 </div>
 </section>
 
-<!-- TLV Results Breakdown -->
+<!-- Dynamic TLV Inspection Results -->
 <section id="resultsSection" class="hidden glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
 <h2 class="font-semibold text-base mb-4 flex items-center gap-2">
 <i class="fa-solid fa-list-check text-blue-500"></i> Decoded MauCAS TLV Structure
@@ -155,7 +155,7 @@ background: rgba(15, 23, 42, 0.8);
 </tr>
 </thead>
 <tbody id="tlvBody" class="divide-y divide-slate-100 dark:divide-slate-800/60 font-mono">
-<!-- Dynamic Rows -->
+<!-- Rows injected dynamically -->
 </tbody>
 </table>
 </div>
@@ -191,7 +191,7 @@ const SUBTAG_NAMES_62 = {
 '08': 'Purpose of Transaction'
 };
 
-// DOM Elements
+// UI Element Selectors
 const themeToggle = document.getElementById('themeToggle');
 const rawInput = document.getElementById('rawInput');
 const parseBtn = document.getElementById('parseBtn');
@@ -205,12 +205,12 @@ const tlvBody = document.getElementById('tlvBody');
 const xmlOutput = document.getElementById('xmlOutput');
 const copyXmlBtn = document.getElementById('copyXmlBtn');
 
-// Dark Mode Toggle
+// Dark Theme Switcher
 themeToggle.addEventListener('click', () => {
 document.documentElement.classList.toggle('dark');
 });
 
-// Drag & Drop & Clipboard Handling
+// Event Listeners for Upload & Clipboard Handling
 dropZone.addEventListener('click', () => fileInput.click());
 
 dropZone.addEventListener('dragover', (e) => {
@@ -231,7 +231,7 @@ handleFile(e.dataTransfer.files[0]);
 });
 
 document.addEventListener('paste', (e) => {
-const items = e.clipboardData.items;
+const items = (e.clipboardData || e.originalEvent.clipboardData).items;
 for (let item of items) {
 if (item.type.indexOf('image') !== -1) {
 const blob = item.getAsFile();
@@ -247,7 +247,7 @@ const str = rawInput.value.trim();
 if (str) {
 processAndGenerate(str);
 } else {
-alert('Please enter a valid EMVCo string or upload a QR image.');
+alert('Please enter or scan a valid EMVCo string.');
 }
 });
 
@@ -263,9 +263,9 @@ fileInput.value = '';
 
 copyXmlBtn.addEventListener('click', () => {
 if (!xmlOutput.value) return;
-xmlOutput.select();
-navigator.clipboard.writeText(xmlOutput.value);
+navigator.clipboard.writeText(xmlOutput.value).then(() => {
 alert('pacs.008 XML copied to clipboard!');
+});
 });
 
 function handleFile(file) {
@@ -287,16 +287,19 @@ if (code) {
 rawInput.value = code.data;
 processAndGenerate(code.data);
 } else {
-alert('No valid QR code detected in the uploaded image.');
+alert('Could not decode a valid QR code from the provided image.');
 }
 };
 img.src = URL.createObjectURL(file);
 }
 
+// Safe Non-blocking TLV String Parser
 function parseEMVCo(str) {
 const tlv = {};
+if (!str) return tlv;
 let idx = 0;
 while (idx < str.length) {
+if (idx + 4 > str.length) break;
 const tag = str.substring(idx, idx + 2);
 const len = parseInt(str.substring(idx + 2, idx + 4), 10);
 if (isNaN(len) || idx + 4 + len > str.length) break;
@@ -321,7 +324,7 @@ case '"': return '&quot;';
 function processAndGenerate(str) {
 tlvBody.innerHTML = '';
 
-// Build Table View
+// Render Table Rows
 let index = 0;
 try {
 while (index < str.length) {
@@ -341,32 +344,32 @@ if (tag === '62') parseNested(val, SUBTAG_NAMES_62);
 }
 resultsSection.classList.remove('hidden');
 } catch (e) {
-alert('Error parsing payload format.');
+console.error("TLV Processing Error", e);
 }
 
-// Extract values for XML
+// Extract values for ISO XML document
 const qr = parseEMVCo(str);
 const tag26 = parseEMVCo(qr['26'] || '');
 const tag62 = parseEMVCo(qr['62'] || '');
 
 const amount = qr['54'] || '0.00';
-const currency = qr['53'] === '480' ? 'MUR' : 'MUR';
+const currency = qr['53'] === '480' ? 'MUR' : (qr['53'] || 'MUR');
 const merchantName = qr['59'] || 'UNKNOWN';
 const merchantCity = qr['60'] || 'PortLouis';
 const mcc = qr['52'] || '0000';
 
 const globalId = tag26['00'] || 'mu.maucas';
-const merchantId = tag26['01'] || '';
+const merchantId = tag26['01'] || 'UNKNOWN';
 const merchantAcct = tag26['02'] || merchantId;
 const cdtrBic = tag26['08'] || 'LABRMUM0';
 
 const billNumber = tag62['01'] || '';
 const refLabel = tag62['08'] || '';
 
-const debtorName = document.getElementById('debtorName').value;
-const debtorAcct = document.getElementById('debtorAcct').value;
-const senderBic = document.getElementById('senderBic').value;
-const receiverBic = document.getElementById('receiverBic').value;
+const debtorName = document.getElementById('debtorName').value || 'Genevieve';
+const debtorAcct = document.getElementById('debtorAcct').value || '012523652145';
+const senderBic = document.getElementById('senderBic').value || 'TSTEMUMU';
+const receiverBic = document.getElementById('receiverBic').value || 'BOMMMUPLIPS';
 
 const now = new Date();
 const dateStr = now.toISOString().split('T')[0];
@@ -376,10 +379,11 @@ const creationDt = now.toISOString();
 
 const ustrdRemittance = `/QR/${globalId}//01/12/62//01/${billNumber}/08/${refLabel}///RQ/`;
 
-// Generate ISO 20022 XML Payload
-const xml = `<DataPDU xmlns="urn:cma:stp:xsd:stp.1.0">
+// Build ISO 20022 XML String
+const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<DataPDU xmlns="urn:cma:stp:xsd:stp.1.0">
 <Body>
-<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.01">
 <Fr>
 <FIId>
 <FinInstnId>
@@ -536,144 +540,11 @@ tr.innerHTML = `
 tlvBody.appendChild(tr);
 }
 
-// Auto-load sample MauCAS QR payload on boot
+// Initialize default sample payload on load
+window.addEventListener('DOMContentLoaded', () => {
 rawInput.value = "00020101021226420009mu.maucas0109LABR000010808LABRMUM05204939953034805406700.005802MU5904LABR6009PortLouis62480123MAUCAS-QR17845396420950818Payment for permit6304C741";
 processAndGenerate(rawInput.value);
+});
 </script>
 </body>
 </html>
-
-On Tue, 22 Sep 2026 at 14:59, Vasish Kalapnath <Vasish.Kalapnath@bom.mu> wrote:
-<DataPDU
-                xmlns="urn:cma:stp:xsd:stp.1.0">
-                <Body>
-                                <AppHdr
-                                                xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.01"
-                                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                                                <Fr>
-                                                                <FIId>
-                                                                                <FinInstnId>
-                                                                                                <BICFI>TSTEMUMU</BICFI>
-                                                                                </FinInstnId>
-                                                                </FIId>
-                                                </Fr>
-                                                <To>
-                                                                <FIId>
-                                                                                <FinInstnId>
-                                                                                                <BICFI>BOMMMUPLIPS</BICFI>
-                                                                                </FinInstnId>
-                                                                </FIId>
-                                                </To>
-                                                <BizMsgIdr>TSTEMUMU20240806134700</BizMsgIdr>
-                                                <MsgDefIdr>pacs.008.001.08</MsgDefIdr>
-                                                <BizSvc>ACH</BizSvc>
-                                                <CreDt>2025-01-22T14:00:09.198Z</CreDt>
-                                </AppHdr>
-                                <Document
-                                                xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
-                                                <FIToFICstmrCdtTrf>
-                                                                <GrpHdr>
-                                                                                <MsgId>TSTEMUMU20260720110842</MsgId>
-                                                                                <CreDtTm>2026-04-29T15:00:09</CreDtTm>
-                                                                                <NbOfTxs>1</NbOfTxs>
-                                                                                <TtlIntrBkSttlmAmt Ccy="MUR">700.00</TtlIntrBkSttlmAmt>
-                                                                                <IntrBkSttlmDt>2026-07-20</IntrBkSttlmDt>
-                                                                                <SttlmInf>
-                                                                                                <SttlmMtd>CLRG</SttlmMtd>
-                                                                                </SttlmInf>
-                                                                </GrpHdr>
-                                                                <CdtTrfTxInf>
-                                                                                <PmtId>
-                                                                                                <InstrId>TSTEMUMU20260720110842</InstrId>
-                                                                                                <EndToEndId>TSTEMUMU20260720110842</EndToEndId>
-                                                                                                <TxId>TSTEMUMU20260720110842</TxId>
-                                                                                </PmtId>
-                                                                                <PmtTpInf>
-                                                                                                <ClrChanl>RTNS</ClrChanl>
-                                                                                                <SvcLvl>
-                                                                                                                <Prtry>0100</Prtry>
-                                                                                                </SvcLvl>
-                                                                                                <LclInstrm>
-                                                                                                                <Prtry>CSDC</Prtry>
-                                                                                                </LclInstrm>
-                                                                                                <CtgyPurp>
-                                                                                                                <Prtry>305</Prtry>
-                                                                                                </CtgyPurp>
-                                                                                </PmtTpInf>
-                                                                                <IntrBkSttlmAmt Ccy="MUR">700.00</IntrBkSttlmAmt>
-                                                                                <ChrgBr>CRED</ChrgBr>
-                                                                                <InstgAgt>
-                                                                                                <FinInstnId>
-                                                                                                                <BICFI>TSTEMUMU</BICFI>
-                                                                                                </FinInstnId>
-                                                                                </InstgAgt>
-                                                                                <InstdAgt>
-                                                                                                <FinInstnId>
-                                                                                                                <BICFI>LABRMUM0</BICFI>
-                                                                                                </FinInstnId>
-                                                                                </InstdAgt>
-                                                                                <Dbtr>
-                                                                                                <Nm>Genevieve</Nm>
-                                                                                </Dbtr>
-                                                                                <DbtrAcct>
-                                                                                                <Id>
-                                                                                                                <Othr>
-                                                                                                                                <Id>012523652145</Id>
-                                                                                                                </Othr>
-                                                                                                </Id>
-                                                                                </DbtrAcct>
-                                                                                <DbtrAgt>
-                                                                                                <FinInstnId>
-                                                                                                                <BICFI>TSTEMUMU</BICFI>
-                                                                                                                <!-- TSTEMUMU -->
-                                                                                                </FinInstnId>
-                                                                                </DbtrAgt>
-                                                                                <CdtrAgt>
-                                                                                                <FinInstnId>
-                                                                                                                <BICFI>LABRMUM0</BICFI>
-                                                                                                                <!-- DPPOMUM0 -->
-                                                                                                </FinInstnId>
-                                                                                </CdtrAgt>
-                                                                                <Cdtr>
-                                                                                                <Nm>LABR</Nm>
-                                                                                                <PstlAdr>
-                                                                                                                <TwnNm>PortLouis</TwnNm>
-                                                                                                                <Ctry>MU</Ctry>
-                                                                                                </PstlAdr>
-                                                                                                <Id>
-                                                                                                                <OrgId>
-                                                                                                                                <Othr>
-                                                                                                                                                <Id>9399</Id>
-                                                                                                                                                <SchmeNm>
-                                                                                                                                                                <Prtry>MCC</Prtry>
-                                                                                                                                                </SchmeNm>
-                                                                                                                                </Othr>
-                                                                                                                                <Othr>
-                                                                                                                                                <Id>LABR00001</Id>
-                                                                                                                                                <SchmeNm>
-                                                                                                                                                                <Prtry>MerchantID</Prtry>
-                                                                                                                                                </SchmeNm>
-                                                                                                                                </Othr>
-                                                                                                                </OrgId>
-                                                                                                </Id>
-                                                                                </Cdtr>
-                                                                                <CdtrAcct>
-                                                                                                <Id>
-                                                                                                                <Othr>
-                                                                                                                                <Id>LABR20250001</Id>
-                                                                                                                </Othr>
-                                                                                                </Id>
-                                                                                </CdtrAcct>
-                                                                                <RgltryRptg>
-                                                                                                <Dtls>
-                                                                                                                <Inf>Merchant Payment</Inf>
-                                                                                                </Dtls>
-                                                                                </RgltryRptg>
-                                                                                <RmtInf>
-                                                                                                <Ustrd>/QR/mu.maucas//01/12/62//01/MAUCAS-QR1784539642095/08/Payment for permit///RQ/</Ustrd>
-                                                                                </RmtInf>
-                                                                </CdtTrfTxInf>
-                                                </FIToFICstmrCdtTrf>
-                                </Document>
-                </Body>
-</DataPDU>
