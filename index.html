@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EMVCo QR Code Inspector</title>
+<title>EMVCo MauCAS QR & ISO 20022 pacs.008 Converter</title>
 <!-- Tailwind CSS CDN -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
@@ -53,7 +53,8 @@ background: rgba(15, 23, 42, 0.8);
 <i class="fa-solid fa-qrcode text-xl"></i>
 </div>
 <div>
-<h1 class="font-bold text-lg leading-tight">EMVCo QR Inspector</h1>
+<h1 class="font-bold text-lg leading-tight">EMVCo QR & pacs.008 Engine</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400">MauCAS TLV Parser & ISO 20022 XML Generator</p>
 </div>
 </div>
 <button id="themeToggle" class="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition">
@@ -67,39 +68,73 @@ background: rgba(15, 23, 42, 0.8);
 <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
 <section class="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-<!-- Upload & Input Column -->
+<!-- Input & Image Upload Column -->
 <div class="lg:col-span-5 flex flex-col gap-4">
-<div id="dropZone" class="glass-card relative border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition flex flex-col items-center justify-center min-h-[180px] shadow-sm">
+<div id="dropZone" class="glass-card relative border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-2xl p-6 text-center cursor-pointer hover:border-blue-500 dark:hover:border-blue-400 transition flex flex-col items-center justify-center min-h-[160px] shadow-sm">
 <input type="file" id="fileInput" accept="image/*" class="hidden">
-<div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-3">
+<div class="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-slate-800 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-2">
 <i class="fa-solid fa-cloud-arrow-up text-xl"></i>
 </div>
-<p class="font-semibold text-slate-700 dark:text-slate-200">Upload QR Image</p>
-<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Drag & drop or click to browse</p>
+<p class="font-semibold text-slate-700 dark:text-slate-200">Upload or Paste QR Image</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Drag & drop image, browse, or paste clipboard (Ctrl+V)</p>
 </div>
 
 <div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm">
-<label for="rawInput" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Raw Payload String</label>
-<textarea id="rawInput" rows="4" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Paste EMVCo String here..."></textarea>
-<div class="flex gap-2 mt-3">
-<button id="parseBtn" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition shadow-md shadow-blue-500/10">Parse Payload</button>
+<label for="rawInput" class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Raw QR Payload String</label>
+<textarea id="rawInput" rows="3" class="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Paste EMVCo QR String here..."></textarea>
+
+<!-- Context Customizations for XML -->
+<div class="grid grid-cols-2 gap-3 mt-3">
+<div>
+<label class="block text-[10px] font-semibold text-slate-400 uppercase">Debtor Name</label>
+<input type="text" id="debtorName" value="Genevieve" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
+</div>
+<div>
+<label class="block text-[10px] font-semibold text-slate-400 uppercase">Debtor Account</label>
+<input type="text" id="debtorAcct" value="012523652145" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
+</div>
+<div>
+<label class="block text-[10px] font-semibold text-slate-400 uppercase">Sender BIC (InstgAgt)</label>
+<input type="text" id="senderBic" value="TSTEMUMU" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
+</div>
+<div>
+<label class="block text-[10px] font-semibold text-slate-400 uppercase">Receiver BIC (To)</label>
+<input type="text" id="receiverBic" value="BOMMMUPLIPS" class="w-full p-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs font-mono outline-none">
+</div>
+</div>
+
+<div class="flex gap-2 mt-4">
+<button id="parseBtn" class="flex-1 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm rounded-xl transition shadow-md shadow-blue-500/10">Parse & Generate ISO XML</button>
 <button id="clearBtn" class="px-4 py-2.5 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium text-sm rounded-xl transition">Clear</button>
 </div>
 </div>
 </div>
 
-<!-- Canvas Preview Column -->
-<div class="lg:col-span-7">
-<div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 h-full flex flex-col justify-between shadow-sm relative min-h-[280px]">
+<!-- Preview Canvas & ISO 20022 XML Output Column -->
+<div class="lg:col-span-7 flex flex-col gap-4">
+<div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm relative">
 <div class="flex items-center justify-between mb-3">
-<h2 class="font-semibold text-sm">QR Code Preview</h2>
+<h2 class="font-semibold text-sm">QR Preview</h2>
 </div>
-<div class="flex-1 flex items-center justify-center bg-slate-100 dark:bg-slate-900/50 rounded-xl p-4 border border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
-<canvas id="qrCanvas" class="max-h-[220px] object-contain rounded-lg hidden"></canvas>
+<div class="flex items-center justify-center bg-slate-100 dark:bg-slate-900/50 rounded-xl p-3 border border-slate-200/50 dark:border-slate-800/50 overflow-hidden min-h-[100px]">
+<canvas id="qrCanvas" class="max-h-[120px] object-contain rounded-lg hidden"></canvas>
 <p id="canvasPlaceholder" class="text-xs text-slate-400 flex items-center gap-2">
-<i class="fa-regular fa-image text-base"></i> Upload an image to preview the QR code
+<i class="fa-regular fa-image text-base"></i> Upload or paste a QR image to preview
 </p>
 </div>
+</div>
+
+<!-- XML Output Card -->
+<div class="glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex-1 flex flex-col">
+<div class="flex items-center justify-between mb-2">
+<h2 class="font-semibold text-sm flex items-center gap-2 text-indigo-500">
+<i class="fa-solid fa-code"></i> pacs.008.001.08 Payload
+</h2>
+<button id="copyXmlBtn" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg transition flex items-center gap-1">
+<i class="fa-regular fa-copy"></i> Copy XML
+</button>
+</div>
+<textarea id="xmlOutput" rows="12" readonly class="w-full flex-1 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-900 text-emerald-400 text-xs font-mono focus:ring-2 focus:ring-blue-500 outline-none resize-none" placeholder="Generated pacs.008 XML will appear here..."></textarea>
 </div>
 </div>
 </section>
@@ -107,7 +142,7 @@ background: rgba(15, 23, 42, 0.8);
 <!-- TLV Results Breakdown -->
 <section id="resultsSection" class="hidden glass-card border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm">
 <h2 class="font-semibold text-base mb-4 flex items-center gap-2">
-<i class="fa-solid fa-list-check text-blue-500"></i> Decoded TLV Structure
+<i class="fa-solid fa-list-check text-blue-500"></i> Decoded MauCAS TLV Structure
 </h2>
 <div class="overflow-x-auto">
 <table class="w-full text-left text-xs">
@@ -128,7 +163,6 @@ background: rgba(15, 23, 42, 0.8);
 </main>
 
 <script>
-// Tag dictionary for standard EMVCo specifications
 const TAG_NAMES = {
 '00': 'Payload Format Indicator',
 '01': 'Point of Initiation Method',
@@ -145,9 +179,9 @@ const TAG_NAMES = {
 
 const SUBTAG_NAMES_26 = {
 '00': 'Globally Unique Identifier',
-'01': 'Payment Network Specific',
-'02': 'Payment Network Specific',
-'03': 'Payment Network Specific'
+'01': 'Merchant ID',
+'02': 'Merchant Account Number',
+'08': 'Creditor Bank BIC'
 };
 
 const SUBTAG_NAMES_62 = {
@@ -168,13 +202,15 @@ const qrCanvas = document.getElementById('qrCanvas');
 const canvasPlaceholder = document.getElementById('canvasPlaceholder');
 const resultsSection = document.getElementById('resultsSection');
 const tlvBody = document.getElementById('tlvBody');
+const xmlOutput = document.getElementById('xmlOutput');
+const copyXmlBtn = document.getElementById('copyXmlBtn');
 
 // Dark Mode Toggle
 themeToggle.addEventListener('click', () => {
 document.documentElement.classList.toggle('dark');
 });
 
-// Drag & Drop Handling
+// Drag & Drop & Clipboard Handling
 dropZone.addEventListener('click', () => fileInput.click());
 
 dropZone.addEventListener('dragover', (e) => {
@@ -194,24 +230,42 @@ handleFile(e.dataTransfer.files[0]);
 }
 });
 
+document.addEventListener('paste', (e) => {
+const items = e.clipboardData.items;
+for (let item of items) {
+if (item.type.indexOf('image') !== -1) {
+const blob = item.getAsFile();
+handleFile(blob);
+}
+}
+});
+
 fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
 parseBtn.addEventListener('click', () => {
 const str = rawInput.value.trim();
 if (str) {
-parseEMVCo(str);
+processAndGenerate(str);
 } else {
-alert('Please enter a valid EMVCo string or upload an image.');
+alert('Please enter a valid EMVCo string or upload a QR image.');
 }
 });
 
 clearBtn.addEventListener('click', () => {
 rawInput.value = '';
+xmlOutput.value = '';
 tlvBody.innerHTML = '';
 resultsSection.classList.add('hidden');
 qrCanvas.classList.add('hidden');
 canvasPlaceholder.classList.remove('hidden');
 fileInput.value = '';
+});
+
+copyXmlBtn.addEventListener('click', () => {
+if (!xmlOutput.value) return;
+xmlOutput.select();
+navigator.clipboard.writeText(xmlOutput.value);
+alert('pacs.008 XML copied to clipboard!');
 });
 
 function handleFile(file) {
@@ -231,7 +285,7 @@ const code = jsQR(imageData.data, imageData.width, imageData.height);
 
 if (code) {
 rawInput.value = code.data;
-parseEMVCo(code.data);
+processAndGenerate(code.data);
 } else {
 alert('No valid QR code detected in the uploaded image.');
 }
@@ -239,21 +293,42 @@ alert('No valid QR code detected in the uploaded image.');
 img.src = URL.createObjectURL(file);
 }
 
-// Generic Dynamic Parser
 function parseEMVCo(str) {
-tlvBody.innerHTML = '';
-let index = 0;
+const tlv = {};
+let idx = 0;
+while (idx < str.length) {
+const tag = str.substring(idx, idx + 2);
+const len = parseInt(str.substring(idx + 2, idx + 4), 10);
+if (isNaN(len) || idx + 4 + len > str.length) break;
+tlv[tag] = str.substring(idx + 4, idx + 4 + len);
+idx += 4 + len;
+}
+return tlv;
+}
 
+function escapeXml(unsafe) {
+return (unsafe || '').replace(/[<>&'"]/g, c => {
+switch (c) {
+case '<': return '&lt;';
+case '>': return '&gt;';
+case '&': return '&amp;';
+case '\'': return '&apos;';
+case '"': return '&quot;';
+}
+});
+}
+
+function processAndGenerate(str) {
+tlvBody.innerHTML = '';
+
+// Build Table View
+let index = 0;
 try {
 while (index < str.length) {
 if (index + 4 > str.length) break;
-
 const tag = str.substring(index, index + 2);
 const len = parseInt(str.substring(index + 2, index + 4), 10);
-
-if (isNaN(len) || index + 4 + len > str.length) {
-break;
-}
+if (isNaN(len) || index + 4 + len > str.length) break;
 
 const val = str.substring(index + 4, index + 4 + len);
 index += 4 + len;
@@ -261,14 +336,176 @@ index += 4 + len;
 const name = TAG_NAMES[tag] || 'Custom / Reserved Tag';
 appendRow(tag, name, len, val, false);
 
-// Parse template sub-tags dynamically
 if (tag === '26') parseNested(val, SUBTAG_NAMES_26);
 if (tag === '62') parseNested(val, SUBTAG_NAMES_62);
 }
 resultsSection.classList.remove('hidden');
 } catch (e) {
-alert('Error parsing the provided payload format.');
+alert('Error parsing payload format.');
 }
+
+// Extract values for XML
+const qr = parseEMVCo(str);
+const tag26 = parseEMVCo(qr['26'] || '');
+const tag62 = parseEMVCo(qr['62'] || '');
+
+const amount = qr['54'] || '0.00';
+const currency = qr['53'] === '480' ? 'MUR' : 'MUR';
+const merchantName = qr['59'] || 'UNKNOWN';
+const merchantCity = qr['60'] || 'PortLouis';
+const mcc = qr['52'] || '0000';
+
+const globalId = tag26['00'] || 'mu.maucas';
+const merchantId = tag26['01'] || '';
+const merchantAcct = tag26['02'] || merchantId;
+const cdtrBic = tag26['08'] || 'LABRMUM0';
+
+const billNumber = tag62['01'] || '';
+const refLabel = tag62['08'] || '';
+
+const debtorName = document.getElementById('debtorName').value;
+const debtorAcct = document.getElementById('debtorAcct').value;
+const senderBic = document.getElementById('senderBic').value;
+const receiverBic = document.getElementById('receiverBic').value;
+
+const now = new Date();
+const dateStr = now.toISOString().split('T')[0];
+const timeStr = now.toISOString().replace(/[:-]/g, '').split('.')[0];
+const msgId = `${senderBic}${timeStr}`;
+const creationDt = now.toISOString();
+
+const ustrdRemittance = `/QR/${globalId}//01/12/62//01/${billNumber}/08/${refLabel}///RQ/`;
+
+// Generate ISO 20022 XML Payload
+const xml = `<DataPDU xmlns="urn:cma:stp:xsd:stp.1.0">
+<Body>
+<AppHdr xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.01" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<Fr>
+<FIId>
+<FinInstnId>
+<BICFI>${escapeXml(senderBic)}</BICFI>
+</FinInstnId>
+</FIId>
+</Fr>
+<To>
+<FIId>
+<FinInstnId>
+<BICFI>${escapeXml(receiverBic)}</BICFI>
+</FinInstnId>
+</FIId>
+</To>
+<BizMsgIdr>${escapeXml(msgId)}</BizMsgIdr>
+<MsgDefIdr>pacs.008.001.08</MsgDefIdr>
+<BizSvc>ACH</BizSvc>
+<CreDt>${creationDt}</CreDt>
+</AppHdr>
+<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+<FIToFICstmrCdtTrf>
+<GrpHdr>
+<MsgId>${escapeXml(msgId)}</MsgId>
+<CreDtTm>${creationDt.substring(0, 19)}</CreDtTm>
+<NbOfTxs>1</NbOfTxs>
+<TtlIntrBkSttlmAmt Ccy="${currency}">${amount}</TtlIntrBkSttlmAmt>
+<IntrBkSttlmDt>${dateStr}</IntrBkSttlmDt>
+<SttlmInf>
+<SttlmMtd>CLRG</SttlmMtd>
+</SttlmInf>
+</GrpHdr>
+<CdtTrfTxInf>
+<PmtId>
+<InstrId>${escapeXml(msgId)}</InstrId>
+<EndToEndId>${escapeXml(msgId)}</EndToEndId>
+<TxId>${escapeXml(msgId)}</TxId>
+</PmtId>
+<PmtTpInf>
+<ClrChanl>RTNS</ClrChanl>
+<SvcLvl>
+<Prtry>0100</Prtry>
+</SvcLvl>
+<LclInstrm>
+<Prtry>CSDC</Prtry>
+</LclInstrm>
+<CtgyPurp>
+<Prtry>305</Prtry>
+</CtgyPurp>
+</PmtTpInf>
+<IntrBkSttlmAmt Ccy="${currency}">${amount}</IntrBkSttlmAmt>
+<ChrgBr>CRED</ChrgBr>
+<InstgAgt>
+<FinInstnId>
+<BICFI>${escapeXml(senderBic)}</BICFI>
+</FinInstnId>
+</InstgAgt>
+<InstdAgt>
+<FinInstnId>
+<BICFI>${escapeXml(cdtrBic)}</BICFI>
+</FinInstnId>
+</InstdAgt>
+<Dbtr>
+<Nm>${escapeXml(debtorName)}</Nm>
+</Dbtr>
+<DbtrAcct>
+<Id>
+<Othr>
+<Id>${escapeXml(debtorAcct)}</Id>
+</Othr>
+</Id>
+</DbtrAcct>
+<DbtrAgt>
+<FinInstnId>
+<BICFI>${escapeXml(senderBic)}</BICFI>
+</FinInstnId>
+</DbtrAgt>
+<CdtrAgt>
+<FinInstnId>
+<BICFI>${escapeXml(cdtrBic)}</BICFI>
+</FinInstnId>
+</CdtrAgt>
+<Cdtr>
+<Nm>${escapeXml(merchantName)}</Nm>
+<PstlAdr>
+<TwnNm>${escapeXml(merchantCity)}</TwnNm>
+<Ctry>MU</Ctry>
+</PstlAdr>
+<Id>
+<OrgId>
+<Othr>
+<Id>${escapeXml(mcc)}</Id>
+<SchmeNm>
+<Prtry>MCC</Prtry>
+</SchmeNm>
+</Othr>
+<Othr>
+<Id>${escapeXml(merchantId)}</Id>
+<SchmeNm>
+<Prtry>MerchantID</Prtry>
+</SchmeNm>
+</Othr>
+</OrgId>
+</Id>
+</Cdtr>
+<CdtrAcct>
+<Id>
+<Othr>
+<Id>${escapeXml(merchantAcct)}</Id>
+</Othr>
+</Id>
+</CdtrAcct>
+<RgltryRptg>
+<Dtls>
+<Inf>Merchant Payment</Inf>
+</Dtls>
+</RgltryRptg>
+<RmtInf>
+<Ustrd>${escapeXml(ustrdRemittance)}</Ustrd>
+</RmtInf>
+</CdtTrfTxInf>
+</FIToFICstmrCdtTrf>
+</Document>
+</Body>
+</DataPDU>`;
+
+xmlOutput.value = xml;
 }
 
 function parseNested(subStr, dictionary) {
@@ -277,7 +514,6 @@ while (idx < subStr.length) {
 if (idx + 4 > subStr.length) break;
 const tag = subStr.substring(idx, idx + 2);
 const len = parseInt(subStr.substring(idx + 2, idx + 4), 10);
-
 if (isNaN(len) || idx + 4 + len > subStr.length) break;
 
 const val = subStr.substring(idx + 4, idx + 4 + len);
@@ -291,7 +527,6 @@ appendRow(tag, name, len, val, true);
 function appendRow(tag, name, len, val, isNested) {
 const tr = document.createElement('tr');
 tr.className = isNested ? "bg-slate-50/50 dark:bg-slate-900/30 text-slate-500" : "hover:bg-slate-50 dark:hover:bg-slate-900/50";
-
 tr.innerHTML = `
 <td class="py-2.5 font-bold ${isNested ? 'pl-6 text-blue-500' : 'text-slate-700 dark:text-slate-200'}">[${tag}]</td>
 <td class="py-2.5 font-sans">${name}</td>
@@ -300,6 +535,145 @@ tr.innerHTML = `
 `;
 tlvBody.appendChild(tr);
 }
+
+// Auto-load sample MauCAS QR payload on boot
+rawInput.value = "00020101021226420009mu.maucas0109LABR000010808LABRMUM05204939953034805406700.005802MU5904LABR6009PortLouis62480123MAUCAS-QR17845396420950818Payment for permit6304C741";
+processAndGenerate(rawInput.value);
 </script>
 </body>
 </html>
+
+On Tue, 22 Sep 2026 at 14:59, Vasish Kalapnath <Vasish.Kalapnath@bom.mu> wrote:
+<DataPDU
+                xmlns="urn:cma:stp:xsd:stp.1.0">
+                <Body>
+                                <AppHdr
+                                                xmlns="urn:iso:std:iso:20022:tech:xsd:head.001.001.01"
+                                                xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+                                                <Fr>
+                                                                <FIId>
+                                                                                <FinInstnId>
+                                                                                                <BICFI>TSTEMUMU</BICFI>
+                                                                                </FinInstnId>
+                                                                </FIId>
+                                                </Fr>
+                                                <To>
+                                                                <FIId>
+                                                                                <FinInstnId>
+                                                                                                <BICFI>BOMMMUPLIPS</BICFI>
+                                                                                </FinInstnId>
+                                                                </FIId>
+                                                </To>
+                                                <BizMsgIdr>TSTEMUMU20240806134700</BizMsgIdr>
+                                                <MsgDefIdr>pacs.008.001.08</MsgDefIdr>
+                                                <BizSvc>ACH</BizSvc>
+                                                <CreDt>2025-01-22T14:00:09.198Z</CreDt>
+                                </AppHdr>
+                                <Document
+                                                xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">
+                                                <FIToFICstmrCdtTrf>
+                                                                <GrpHdr>
+                                                                                <MsgId>TSTEMUMU20260720110842</MsgId>
+                                                                                <CreDtTm>2026-04-29T15:00:09</CreDtTm>
+                                                                                <NbOfTxs>1</NbOfTxs>
+                                                                                <TtlIntrBkSttlmAmt Ccy="MUR">700.00</TtlIntrBkSttlmAmt>
+                                                                                <IntrBkSttlmDt>2026-07-20</IntrBkSttlmDt>
+                                                                                <SttlmInf>
+                                                                                                <SttlmMtd>CLRG</SttlmMtd>
+                                                                                </SttlmInf>
+                                                                </GrpHdr>
+                                                                <CdtTrfTxInf>
+                                                                                <PmtId>
+                                                                                                <InstrId>TSTEMUMU20260720110842</InstrId>
+                                                                                                <EndToEndId>TSTEMUMU20260720110842</EndToEndId>
+                                                                                                <TxId>TSTEMUMU20260720110842</TxId>
+                                                                                </PmtId>
+                                                                                <PmtTpInf>
+                                                                                                <ClrChanl>RTNS</ClrChanl>
+                                                                                                <SvcLvl>
+                                                                                                                <Prtry>0100</Prtry>
+                                                                                                </SvcLvl>
+                                                                                                <LclInstrm>
+                                                                                                                <Prtry>CSDC</Prtry>
+                                                                                                </LclInstrm>
+                                                                                                <CtgyPurp>
+                                                                                                                <Prtry>305</Prtry>
+                                                                                                </CtgyPurp>
+                                                                                </PmtTpInf>
+                                                                                <IntrBkSttlmAmt Ccy="MUR">700.00</IntrBkSttlmAmt>
+                                                                                <ChrgBr>CRED</ChrgBr>
+                                                                                <InstgAgt>
+                                                                                                <FinInstnId>
+                                                                                                                <BICFI>TSTEMUMU</BICFI>
+                                                                                                </FinInstnId>
+                                                                                </InstgAgt>
+                                                                                <InstdAgt>
+                                                                                                <FinInstnId>
+                                                                                                                <BICFI>LABRMUM0</BICFI>
+                                                                                                </FinInstnId>
+                                                                                </InstdAgt>
+                                                                                <Dbtr>
+                                                                                                <Nm>Genevieve</Nm>
+                                                                                </Dbtr>
+                                                                                <DbtrAcct>
+                                                                                                <Id>
+                                                                                                                <Othr>
+                                                                                                                                <Id>012523652145</Id>
+                                                                                                                </Othr>
+                                                                                                </Id>
+                                                                                </DbtrAcct>
+                                                                                <DbtrAgt>
+                                                                                                <FinInstnId>
+                                                                                                                <BICFI>TSTEMUMU</BICFI>
+                                                                                                                <!-- TSTEMUMU -->
+                                                                                                </FinInstnId>
+                                                                                </DbtrAgt>
+                                                                                <CdtrAgt>
+                                                                                                <FinInstnId>
+                                                                                                                <BICFI>LABRMUM0</BICFI>
+                                                                                                                <!-- DPPOMUM0 -->
+                                                                                                </FinInstnId>
+                                                                                </CdtrAgt>
+                                                                                <Cdtr>
+                                                                                                <Nm>LABR</Nm>
+                                                                                                <PstlAdr>
+                                                                                                                <TwnNm>PortLouis</TwnNm>
+                                                                                                                <Ctry>MU</Ctry>
+                                                                                                </PstlAdr>
+                                                                                                <Id>
+                                                                                                                <OrgId>
+                                                                                                                                <Othr>
+                                                                                                                                                <Id>9399</Id>
+                                                                                                                                                <SchmeNm>
+                                                                                                                                                                <Prtry>MCC</Prtry>
+                                                                                                                                                </SchmeNm>
+                                                                                                                                </Othr>
+                                                                                                                                <Othr>
+                                                                                                                                                <Id>LABR00001</Id>
+                                                                                                                                                <SchmeNm>
+                                                                                                                                                                <Prtry>MerchantID</Prtry>
+                                                                                                                                                </SchmeNm>
+                                                                                                                                </Othr>
+                                                                                                                </OrgId>
+                                                                                                </Id>
+                                                                                </Cdtr>
+                                                                                <CdtrAcct>
+                                                                                                <Id>
+                                                                                                                <Othr>
+                                                                                                                                <Id>LABR20250001</Id>
+                                                                                                                </Othr>
+                                                                                                </Id>
+                                                                                </CdtrAcct>
+                                                                                <RgltryRptg>
+                                                                                                <Dtls>
+                                                                                                                <Inf>Merchant Payment</Inf>
+                                                                                                </Dtls>
+                                                                                </RgltryRptg>
+                                                                                <RmtInf>
+                                                                                                <Ustrd>/QR/mu.maucas//01/12/62//01/MAUCAS-QR1784539642095/08/Payment for permit///RQ/</Ustrd>
+                                                                                </RmtInf>
+                                                                </CdtTrfTxInf>
+                                                </FIToFICstmrCdtTrf>
+                                </Document>
+                </Body>
+</DataPDU>
